@@ -1,0 +1,19 @@
+{
+  "name": "dev-academy-challenge",
+  "version": "1.0.0",
+  "description": "Desenvolva uma API REST para 2 entidades: produtos e clientes. Toda a arquitetura deve ser serverless utilizando Api Gateway, Lambda e DynamoDB. Cada entidade deve ter um lambda e tabela cada, garantindo a escalabilidade separada de cada componente do sistema. A API deve permitir operações CRUD básicas de coleção e recursos, através de verbos comuns: GET, POST e PUT. Nas rotas de consulta da coleção, permita que o client envie um parâmetro `filter` pela URL para filtragem de nomes que contenham o valor do parâmetro, por exemplo:",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JosueNicholson/devacademy-api-serverless-challenge.git"
+  },
+  "author": "Josue Nicholson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JosueNicholson/devacademy-api-serverless-challenge/issues"
+  },
+  "homepage": "https://github.com/JosueNicholson/devacademy-api-serverless-challenge#readme"
+}
