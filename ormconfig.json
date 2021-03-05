@@ -1,0 +1,17 @@
+{
+   "type": "postgres",
+   "host": "localhost",
+   "port": "5433",
+   "username":"postgres",
+   "password": "docker",
+   "database": "api-challenge",
+   "entities": [
+      "./models/*.ts "
+   ],
+   "migrations": [
+      "./database/migrations/*.ts "
+   ],
+   "cli":{
+      "migrationsDir": "./database/migrations"
+   }
+}
