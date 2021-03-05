@@ -1,0 +1,10 @@
+POST - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/product
+GET - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/product
+GET - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/product/{id}
+PUT - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/product/{id}
+DELETE - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/product/{id}
+POST - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/client
+GET - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/client
+GET - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/client/{id}
+PUT - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/client/{id}
+DELETE - https://d5cytr7p9l.execute-api.us-east-1.amazonaws.com/Ovidio/client/{id}

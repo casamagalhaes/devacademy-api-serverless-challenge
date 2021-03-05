@@ -1,0 +1,116 @@
+service: WKS
+
+custom:
+  settings:
+    WKS_TABLE_PRODUCT: WKS-product-ovidio
+    WKS_TABLE_CLIENT: WKS-client-ovidio
+    
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: us-east-1
+  stage: Ovidio
+  environment: ${self:custom.settings}
+  iamRoleStatements:
+   - Effect: "Allow"
+     Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+     Resource:
+      - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.settings.WKS_TABLE_PRODUCT}"
+      - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.settings.WKS_TABLE_CLIENT}"
+
+functions:
+  Ovidio-createProduct:
+    handler: app.createProduct
+    events:
+    - http:
+        path: /product
+        method: post
+  Ovidio-getAllProduct:
+    handler: app.getAllProduct
+    events:
+    - http:
+        path: /product
+        method: get
+  Ovidio-getProductId:
+    handler: app.getProductId
+    events:
+    - http:
+        path: /product/{id}
+        method: get
+  Ovidio-updateProduct:
+    handler: app.updateProduct
+    events:
+    - http:
+        path: /product/{id}
+        method: put
+  Ovidio-deletePoduct:
+    handler: app.deleteProduct
+    events:
+    - http:
+        path: /product/{id}
+        method: delete
+  Ovidio-createClient:
+    handler: app.createClient
+    events:
+    - http:
+        path: /client
+        method: post
+  Ovidio-getAllClient:
+    handler: app.getAllClient
+    events:
+    - http:
+        path: /client
+        method: get
+  Ovidio-getClientId:
+    handler: app.getClientId
+    events:
+    - http:
+        path: /client/{id}
+        method: get
+  Ovidio-updateClient:
+    handler: app.updateClient
+    events:
+    - http:
+        path: /client/{id}
+        method: put
+  Ovidio-deleteClient:
+    handler: app.deleteClient
+    events:
+    - http:
+        path: /client/{id}
+        method: delete      
+
+resources:
+  Resources:
+    ProductTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: "id"
+          AttributeType: "S"
+        KeySchema:
+        - AttributeName: "id"
+          KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
+        TableName: ${self:custom.settings.WKS_TABLE_PRODUCT}
+    ClientTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: "id"
+          AttributeType: "S"
+        KeySchema:
+        - AttributeName: "id"
+          KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
+        TableName: ${self:custom.settings.WKS_TABLE_CLIENT}
