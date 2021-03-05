@@ -44,28 +44,6 @@ Resources:
       PathPart: products
       RestApiId:
         Ref: ApiGatewayRestApi
-  ApiGatewayCustomersProxyResource:
-    Type: AWS::ApiGateway::Resource
-    DependsOn: ApiGatewayCustomersResource
-    Properties:
-      ParentId:
-        Fn::GetAtt:
-        - ApiGatewayRestApi
-        - RootResourceId
-      PathPart: '{proxy+}'
-      RestApiId:
-        Ref: ApiGatewayRestApi
-  ApiGatewayProductsProxyResource:
-    Type: AWS::ApiGateway::Resource
-    DependsOn: ApiGatewayProductsResource
-    Properties:
-      ParentId:
-        Fn::GetAtt:
-        - ApiGatewayRestApi
-        - RootResourceId
-      PathPart: '{proxy+}'
-      RestApiId:
-        Ref: ApiGatewayRestApi
   ApiGatewayProductsResMethodAny:
     Type: AWS::ApiGateway::Method
     DependsOn: ProductsLambdaApiService
@@ -228,7 +206,7 @@ Resources:
           - Fn::GetAtt:
             - ProductsDynamoDBTable
             - Arn
-      CodeUri: s3://cm-training-deploy/6944cabadc7863fc64732b4c6b1dda5d
+      CodeUri: s3://cm-training-deploy/fe2f3c42009df8d6990a87b2d4b0d286
   CustomersLambdaApiService:
     Type: AWS::Serverless::Function
     Properties:
@@ -290,7 +268,7 @@ Resources:
           - Fn::GetAtt:
             - CustomersDynamoDBTable
             - Arn
-      CodeUri: s3://cm-training-deploy/6944cabadc7863fc64732b4c6b1dda5d
+      CodeUri: s3://cm-training-deploy/fe2f3c42009df8d6990a87b2d4b0d286
   ProductsDynamoDBTable:
     Type: AWS::DynamoDB::Table
     Properties:
