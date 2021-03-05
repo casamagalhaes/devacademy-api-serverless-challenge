@@ -4,9 +4,7 @@ custom:
   settings:
     WKS_TABLE_PRODUCT: WKS-product-ovidio
     WKS_TABLE_CLIENT: WKS-client-ovidio
-    accessKeyId: AKIAJBZEPAQQK2YPL24A
-    secretAccessKey: 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
-
+    
 provider:
   name: aws
   runtime: nodejs10.x
