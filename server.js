@@ -13,12 +13,12 @@ const eventRequestGenerator = (httpMethod, path, body, headers) => {
     httpMethod,
     path: parsedPath.pathname,
     queryStringParameters,
-    requestContext: {
-      elb: {
-        targetGroupArn:
-          "arn:aws:elasticloadbalancing:us-east-1:901194531837:targetgroup/panamah-dashboard-hom-target-gp/2c6ab79f901cf5fb",
-      },
-    },
+    // requestContext: {
+    //   elb: {
+    //     targetGroupArn:
+    //       "arn:aws:elasticloadbalancing:us-east-1:901194531837:targetgroup/panamah-dashboard-hom-target-gp/2c6ab79f901cf5fb",
+    //   },
+    // },
     headers: {
       accept: "*/*",
       "accept-encoding": "gzip, deflate, br",
