@@ -1,0 +1,345 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Node Service Deployment
+Parameters:
+  AppName:
+    Type: String
+    Default: Sample
+    Description: Informe o nome da sua stack
+Resources:
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    DependsOn:
+    - ProductsLambdaApiService
+    - CustomersLambdaApiService
+    Properties:
+      ApiKeySourceType: HEADER
+      Description: Api Gateway
+      EndpointConfiguration:
+        Types:
+        - EDGE
+      Name:
+        Fn::Join:
+        - '-'
+        - - WKS
+          - Ref: AppName
+          - API
+  ApiGatewayCustomersResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - ApiGatewayRestApi
+        - RootResourceId
+      PathPart: customers
+      RestApiId:
+        Ref: ApiGatewayRestApi
+  ApiGatewayProductsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - ApiGatewayRestApi
+        - RootResourceId
+      PathPart: products
+      RestApiId:
+        Ref: ApiGatewayRestApi
+  ApiGatewayCustomersProxyResource:
+    Type: AWS::ApiGateway::Resource
+    DependsOn: ApiGatewayCustomersResource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - ApiGatewayRestApi
+        - RootResourceId
+      PathPart: '{proxy+}'
+      RestApiId:
+        Ref: ApiGatewayRestApi
+  ApiGatewayProductsProxyResource:
+    Type: AWS::ApiGateway::Resource
+    DependsOn: ApiGatewayProductsResource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - ApiGatewayRestApi
+        - RootResourceId
+      PathPart: '{proxy+}'
+      RestApiId:
+        Ref: ApiGatewayRestApi
+  ApiGatewayProductsResMethodAny:
+    Type: AWS::ApiGateway::Method
+    DependsOn: ProductsLambdaApiService
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: ANY
+      Integration:
+        ConnectionType: INTERNET
+        Credentials:
+          Fn::GetAtt:
+          - ApiGatewayIamRole
+          - Arn
+        IntegrationHttpMethod: POST
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ProductsLambdaApiService.Arn}/invocations
+      OperationName: lambda
+      ResourceId:
+        Ref: ApiGatewayProductsResource
+      RestApiId:
+        Ref: ApiGatewayRestApi
+  ApiGatewayCustomersResMethodAny:
+    Type: AWS::ApiGateway::Method
+    DependsOn: CustomersLambdaApiService
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: ANY
+      Integration:
+        ConnectionType: INTERNET
+        Credentials:
+          Fn::GetAtt:
+          - ApiGatewayIamRole
+          - Arn
+        IntegrationHttpMethod: POST
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomersLambdaApiService.Arn}/invocations
+      OperationName: lambda
+      ResourceId:
+        Ref: ApiGatewayCustomersResource
+      RestApiId:
+        Ref: ApiGatewayRestApi
+  ApiGatewayStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId:
+        Ref: ApiGatewayDeployment
+      Description: Lambda API Stage v1
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      StageName: v1
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+    - ApiGatewayCustomersResMethodAny
+    - ApiGatewayProductsResMethodAny
+    Properties:
+      Description: Lambda API Deployment
+      RestApiId:
+        Ref: ApiGatewayRestApi
+  ApiGatewayIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: ''
+          Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: ProductsLambdaAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: lambda:*
+            Resource:
+              Fn::GetAtt:
+              - ProductsLambdaApiService
+              - Arn
+      - PolicyName: CustomerLambdaAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: lambda:*
+            Resource:
+              Fn::GetAtt:
+              - CustomersLambdaApiService
+              - Arn
+  ProductsLambdaApiService:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: products-index.productsHandler
+      FunctionName:
+        Fn::Join:
+        - '-'
+        - - WKS
+          - Ref: AppName
+          - Products-Service
+      Runtime: nodejs12.x
+      AutoPublishAlias: live
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          NODE_ENV: production
+          PRODUCTS_TABLE:
+            Ref: ProductsDynamoDBTable
+      DeploymentPreference:
+        Type: AllAtOnce
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: logs:CreateLogGroup
+          Resource:
+            Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+        - Effect: Allow
+          Action:
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource:
+            Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*
+        - Effect: Allow
+          Action:
+          - ec2:DescribeVpcs
+          - ec2:DescribeRegions
+          - ec2:DescribeInstances
+          - ec2:CreateNetworkInterface
+          - ec2:DeleteNetworkInterface
+          - ec2:DescribeNetworkInterfaces
+          - ec2:DetachNetworkInterface
+          Resource: '*'
+        - Effect: Allow
+          Action:
+          - dynamodb:BatchGet*
+          - dynamodb:DescribeStream
+          - dynamodb:DescribeTable
+          - dynamodb:Get*
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:BatchWrite*
+          - dynamodb:CreateTable
+          - dynamodb:Delete*
+          - dynamodb:Update*
+          - dynamodb:PutItem
+          Resource:
+          - Fn::GetAtt:
+            - ProductsDynamoDBTable
+            - Arn
+      CodeUri: s3://cm-training-deploy/6944cabadc7863fc64732b4c6b1dda5d
+  CustomersLambdaApiService:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: customers-index.customersHandler
+      FunctionName:
+        Fn::Join:
+        - '-'
+        - - WKS
+          - Ref: AppName
+          - Customers-Service
+      Runtime: nodejs12.x
+      AutoPublishAlias: live
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          NODE_ENV: production
+          CUSTOMERS_TABLE:
+            Ref: CustomersDynamoDBTable
+      DeploymentPreference:
+        Type: AllAtOnce
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: logs:CreateLogGroup
+          Resource:
+            Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+        - Effect: Allow
+          Action:
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource:
+            Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*
+        - Effect: Allow
+          Action:
+          - ec2:DescribeVpcs
+          - ec2:DescribeRegions
+          - ec2:DescribeInstances
+          - ec2:CreateNetworkInterface
+          - ec2:DeleteNetworkInterface
+          - ec2:DescribeNetworkInterfaces
+          - ec2:DetachNetworkInterface
+          Resource: '*'
+        - Effect: Allow
+          Action:
+          - dynamodb:BatchGet*
+          - dynamodb:DescribeStream
+          - dynamodb:DescribeTable
+          - dynamodb:Get*
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:BatchWrite*
+          - dynamodb:CreateTable
+          - dynamodb:Delete*
+          - dynamodb:Update*
+          - dynamodb:PutItem
+          Resource:
+          - Fn::GetAtt:
+            - CustomersDynamoDBTable
+            - Arn
+      CodeUri: s3://cm-training-deploy/6944cabadc7863fc64732b4c6b1dda5d
+  ProductsDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Fn::Join:
+        - '-'
+        - - WKS
+          - Ref: AppName
+          - Products
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  CustomersDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Fn::Join:
+        - '-'
+        - - WKS
+          - Ref: AppName
+          - Customers
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  ApiProductsLambdaPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: ProductsLambdaApiService
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Ref: ProductsLambdaApiService
+      Principal: apigateway.amazonaws.com
+  ApiCustomersLambdaPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: CustomersLambdaApiService
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Ref: CustomersLambdaApiService
+      Principal: apigateway.amazonaws.com
