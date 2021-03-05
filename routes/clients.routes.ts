@@ -25,12 +25,10 @@ clientsRouter.get('/:filter', async(request, response)=>{
    const {filter} = request.params;
    const clientsRepository = getRepository(Client);
    const client = await clientsRepository.find({
-         select:["id","name","phone"],
          where:{
             name: filter
          }
    });
-   console.log(client)
 
    return response.json(client);
 
