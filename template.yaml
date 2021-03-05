@@ -31,28 +31,28 @@ Resources:
       ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
       PathPart: "products"
       RestApiId: !Ref ApiGatewayRestApi
-  ApiGatewayCustomersProxyResource:
-    Type: AWS::ApiGateway::Resource
-    DependsOn: ApiGatewayCustomersResource
-    Properties:
-      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+  # ApiGatewayCustomersProxyResource:
+  #   Type: AWS::ApiGateway::Resource
+  #   DependsOn: ApiGatewayCustomersResource
+  #   Properties:
+  #     ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
       # ParentId: !GetAtt 
       #     - ApiGatewayRestApi
       #     - RootResourceId
       #     - ApiGatewayCustomersResource
-      PathPart: "{proxy+}"
-      RestApiId: !Ref ApiGatewayRestApi
-  ApiGatewayProductsProxyResource:
-    Type: AWS::ApiGateway::Resource
-    DependsOn: ApiGatewayProductsResource
-    Properties:
-      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+  #     PathPart: "{proxy+}"
+  #     RestApiId: !Ref ApiGatewayRestApi
+  # ApiGatewayProductsProxyResource:
+  #   Type: AWS::ApiGateway::Resource
+  #   DependsOn: ApiGatewayProductsResource
+  #   Properties:
+  #     ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
       # ParentId: !GetAtt 
       #     - ApiGatewayRestApi
       #     - RootResourceId
       #     - ApiGatewayProductsResource
-      PathPart: "{proxy+}"
-      RestApiId: !Ref ApiGatewayRestApi
+      # PathPart: "{proxy+}"
+      # RestApiId: !Ref ApiGatewayRestApi
   ApiGatewayProductsResMethodAny:   
     Type: AWS::ApiGateway::Method
     DependsOn: ProductsLambdaApiService
